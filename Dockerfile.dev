@@ -1,0 +1,32 @@
+FROM maven:3.8.4-openjdk-11-slim AS builder
+
+WORKDIR /app
+
+COPY src/ ./src/
+COPY pom.xml ./
+
+# Build with dev profile - includes debug info and tests
+RUN mvn clean package -Pdev
+
+FROM openjdk:11-jre-slim AS runner
+
+WORKDIR /app
+
+# Install useful dev tools
+RUN apt-get update && apt-get install -y \
+    curl \
+    netcat \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/javadb-1.0-SNAPSHOT.jar /app/javadb-1.0-SNAPSHOT.jar
+
+# Add health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Development-specific JVM options
+ENV JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=*:5005 -Xms128m -Xmx512m"
+
+EXPOSE 8080 5005
+
+CMD ["sh", "-c", "java $JAVA_OPTS -jar javadb-1.0-SNAPSHOT.jar"]

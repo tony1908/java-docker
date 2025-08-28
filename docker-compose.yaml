@@ -2,11 +2,15 @@ version: '3.9'
 
 services:
   app:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     container_name: java-app-container
     depends_on:
       mariadb:
         condition: service_healthy
+    environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-dev}
 
   mariadb:
     image: mariadb

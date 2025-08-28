@@ -1,0 +1,32 @@
+FROM maven:3.8.4-openjdk-11-slim AS builder
+
+WORKDIR /app
+
+COPY src/ ./src/
+COPY pom.xml ./
+
+# Build with test profile - runs all tests
+RUN mvn clean package -Ptest
+
+FROM openjdk:11-jre-slim AS runner
+
+WORKDIR /app
+
+# Install test utilities
+RUN apt-get update && apt-get install -y \
+    curl \
+    netcat \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/target/javadb-1.0-SNAPSHOT.jar /app/javadb-1.0-SNAPSHOT.jar
+
+# Add health check with shorter intervals for testing
+HEALTHCHECK --interval=10s --timeout=5s --start-period=15s --retries=5 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Test-specific JVM options - lighter memory usage
+ENV JAVA_OPTS="-Xms64m -Xmx256m -XX:+UseG1GC"
+
+EXPOSE 8080
+
+CMD ["sh", "-c", "java $JAVA_OPTS -jar javadb-1.0-SNAPSHOT.jar"]

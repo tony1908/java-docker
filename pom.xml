@@ -63,4 +63,70 @@
     </plugins>
   </build>
 
+  <profiles>
+    <!-- Development profile -->
+    <profile>
+      <id>dev</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <properties>
+        <db.url>jdbc:mariadb://localhost:3306/myapp</db.url>
+        <db.username>appuser</db.username>
+        <db.password>apppassword</db.password>
+        <log.level>DEBUG</log.level>
+        <maven.test.skip>false</maven.test.skip>
+      </properties>
+    </profile>
+
+    <!-- Test profile -->
+    <profile>
+      <id>test</id>
+      <properties>
+        <db.url>jdbc:mariadb://localhost:3306/myapp_test</db.url>
+        <db.username>testuser</db.username>
+        <db.password>testpassword</db.password>
+        <log.level>WARN</log.level>
+        <maven.test.skip>false</maven.test.skip>
+      </properties>
+    </profile>
+
+    <!-- Production profile -->
+    <profile>
+      <id>prod</id>
+      <properties>
+        <db.url>${env.DB_URL}</db.url>
+        <db.username>${env.DB_USERNAME}</db.username>
+        <db.password>${env.DB_PASSWORD}</db.password>
+        <log.level>INFO</log.level>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+      <build>
+        <plugins>
+          <!-- Additional security and optimization for production -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <optimize>true</optimize>
+              <debug>false</debug>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Docker profile -->
+    <profile>
+      <id>docker</id>
+      <properties>
+        <db.url>jdbc:mariadb://localhost:3306/myapp</db.url>
+        <db.username>appuser</db.username>
+        <db.password>apppassword</db.password>
+        <log.level>INFO</log.level>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+    </profile>
+  </profiles>
+
 </project>
