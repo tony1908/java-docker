@@ -4,20 +4,21 @@ metadata:
   name: app-deployment
   namespace: java-app
   labels:
-    app: app
+    app: java-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app
+      app: java-app
   template:
     metadata:
       labels:
-        app: app
+        app: java-app
     spec:
       containers:
-        - name: app
+        - name: java-app
           image: java-mariadb-app:latest
+          imagePullPolicy: Never
           env:
             - name: DB_HOST
               value: mariadb-service
@@ -29,6 +30,42 @@ spec:
               value: appuser
             - name: DB_PASSWORD
               value: apppassword
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "ps aux | grep java | grep -v grep"
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "ps aux | grep java | grep -v grep"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - "ps aux | grep java | grep -v grep"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 30
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
     
 
 
