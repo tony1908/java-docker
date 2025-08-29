@@ -6,6 +6,8 @@ import java.sql.SQLException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseManager {
     private static final String DB_HOST = System.getenv("DB_HOST");
@@ -63,6 +65,58 @@ public class DatabaseManager {
                 System.out.println("ID: " + id + ", Name: " + name + ", Email: " + email);
             }
         }
+    }
+
+    public List<User> getUsersList() throws SQLException {
+        List<User> users = new ArrayList<>();
+        String selectSQL = "SELECT * FROM users";
+        
+        try (Statement stmt = connection.createStatement()) {
+            ResultSet rs = stmt.executeQuery(selectSQL);
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                String createdAt = rs.getString("created_at");
+                users.add(new User(id, name, email, createdAt));
+            }
+        }
+        return users;
+    }
+
+    public User getUserById(int id) throws SQLException {
+        String selectSQL = "SELECT * FROM users WHERE id = ?";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(selectSQL)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                String createdAt = rs.getString("created_at");
+                return new User(id, name, email, createdAt);
+            }
+        }
+        return null;
+    }
+
+    public User createUser(String name, String email) throws SQLException {
+        String insertSQL = "INSERT INTO users (name, email) VALUES (?, ?)";
+        
+        try (PreparedStatement stmt = connection.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, name);
+            stmt.setString(2, email);
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                ResultSet generatedKeys = stmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    int id = generatedKeys.getInt(1);
+                    return getUserById(id);
+                }
+            }
+        }
+        return null;
     }
 
     public void close() throws SQLException {

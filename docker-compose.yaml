@@ -4,6 +4,14 @@ services:
   app:
     build: .
     container_name: java-app-container
+    ports:
+      - "8082:8080"
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: myapp
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
     depends_on:
       mariadb:
         condition: service_healthy

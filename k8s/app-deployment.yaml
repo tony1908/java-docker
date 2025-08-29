@@ -19,6 +19,8 @@ spec:
         - name: java-app
           image: java-mariadb-app:latest
           imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
           env:
             - name: DB_HOST
               value: mariadb-service
@@ -31,30 +33,24 @@ spec:
             - name: DB_PASSWORD
               value: apppassword
           livenessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - "ps aux | grep java | grep -v grep"
+            httpGet:
+              path: /health
+              port: 8080
             initialDelaySeconds: 60
             periodSeconds: 30
             timeoutSeconds: 10
             failureThreshold: 3
           readinessProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - "ps aux | grep java | grep -v grep"
+            httpGet:
+              path: /health
+              port: 8080
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
           startupProbe:
-            exec:
-              command:
-                - /bin/sh
-                - -c
-                - "ps aux | grep java | grep -v grep"
+            httpGet:
+              path: /health
+              port: 8080
             initialDelaySeconds: 10
             periodSeconds: 5
             timeoutSeconds: 3
