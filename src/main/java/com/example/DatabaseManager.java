@@ -8,11 +8,11 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class DatabaseManager {
-    private static final String DB_HOST = "mariadb";
-    private static final String DB_PORT = "3306";
-    private static final String DB_NAME = "myapp";
-    private static final String DB_USER = "appuser";
-    private static final String DB_PASSWORD = "apppassword";
+    private static final String DB_HOST = System.getenv("DB_HOST");
+    private static final String DB_PORT = System.getenv("DB_PORT");
+    private static final String DB_NAME = System.getenv("DB_NAME");
+    private static final String DB_USER = System.getenv("DB_USER");
+    private static final String DB_PASSWORD = System.getenv("DB_PASSWORD");
 
     private static final String JDBC_URL = String.format("jdbc:mariadb://%s:%s/%s", DB_HOST, DB_PORT, DB_NAME);
 

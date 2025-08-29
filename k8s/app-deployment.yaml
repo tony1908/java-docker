@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  namespace: java-app
+  labels:
+    app: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+        - name: app
+          image: java-mariadb-app:latest
+          env:
+            - name: DB_HOST
+              value: mariadb-service
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: myapp
+            - name: DB_USER
+              value: appuser
+            - name: DB_PASSWORD
+              value: apppassword
+    
+
+
+

@@ -1,6 +1,7 @@
 package com.example;
 
 import java.sql.SQLException;
+//import redis.clients.jedis.UnifiedJedis;
 
 /**
  * Hello world!
@@ -10,6 +11,11 @@ public class App
 {
     public static void main( String[] args )
     {
+        //UnifiedJedis jedis = new UnifiedJedis("redis://redis:6379");
+        //jedis.set("name", "John Doe");
+        //System.out.println(jedis.get("name"));
+        //jedis.close();
+
         DatabaseManager dbManager = null;
         try {
             dbManager = new DatabaseManager();
