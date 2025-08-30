@@ -17,7 +17,10 @@ spec:
     spec:
       containers:
         - name: app
-          image: java-mariadb-app:latest
+          image: java-mariadb-app
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
           env:
             - name: DB_HOST
               value: mariadb-service
@@ -29,7 +32,39 @@ spec:
               value: appuser
             - name: DB_PASSWORD
               value: apppassword
-    
 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+  namespace: java-app
+spec:
+  selector:
+    app: app
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
 
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: java-app
+spec:
+  rules:
+    - host: java-app.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app-service
+                port:
+                  number: 8080
+        
 

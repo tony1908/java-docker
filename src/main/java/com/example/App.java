@@ -2,6 +2,7 @@ package com.example;
 
 import java.sql.SQLException;
 //import redis.clients.jedis.UnifiedJedis;
+import io.javalin.Javalin;
 
 /**
  * Hello world!
@@ -20,18 +21,16 @@ public class App
         try {
             dbManager = new DatabaseManager();
 
-            dbManager.insertUser("John Doe", "john.doe@example.com");
-            dbManager.insertUser("Tony Stark", "tony.stark@example.com");
-            dbManager.getAllUsers();
+            //dbManager.insertUser("John Doe", "john.doe@example.com");
+            //dbManager.insertUser("Tony Stark", "tony.stark@example.com");
+            //dbManager.getAllUsers();
 
-            while (true) {
-                Thread.sleep(10000);
-            }
+            Javalin app = Javalin.create().start(8080);
+
+            app.get("/", ctx -> ctx.result("Hello World"));
             
             
         } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
             if (dbManager != null) {

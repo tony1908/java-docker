@@ -29,6 +29,9 @@ spec:
               value: appuser
             - name: MARIADB_PASSWORD
               value: apppassword
-    
+      volumes:
+        - name: mariadb-storage
+          persistentVolumeClaim:
+            claimName: mariadb-pvc
     
   

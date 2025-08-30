@@ -13,5 +13,7 @@ WORKDIR /app
 
 COPY --from=builder /app/target/javadb-1.0-SNAPSHOT.jar /app/javadb-1.0-SNAPSHOT.jar
 
+EXPOSE 8080
+
 CMD ["java", "-jar", "javadb-1.0-SNAPSHOT.jar"]
 
