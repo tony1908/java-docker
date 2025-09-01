@@ -55,6 +55,7 @@ public class DatabaseManager {
         try (Statement stmt = connection.createStatement()) {
             ResultSet rs = stmt.executeQuery(selectSQL);
             if (rs.next()) {
+                System.out.println("Last message: " + rs.getString("name"));
                 return rs.getString("name");
             }
         }

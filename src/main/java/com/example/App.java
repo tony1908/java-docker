@@ -52,8 +52,10 @@ public class App
             app.get("/last-message", ctx -> {
                 try {
                     String lastMessage = finalDbManager.getLastMessage();
+                    System.out.println("Last message endpoint: " + lastMessage);
                     ctx.json(Map.of("lastMessage", lastMessage));
                 } catch (Exception e) {
+                    System.err.println("Failed to get last message: " + e.getMessage());
                     ctx.status(500).result(e.getMessage());
                 }
             });

@@ -16,7 +16,7 @@ import java.util.Collections;
 public class KafkaConsumerService implements Runnable {
     private final KafkaConsumer<String, String> consumer;
     private static final String TOPIC_NAME = "names-topic";
-    private static final String GROUP_ID = "names-consumer-group";
+    private static final String GROUP_ID = "names-consumer-group-v2";
     private final DatabaseManager dbManager;
     private volatile boolean running = true;
 
@@ -41,9 +41,12 @@ public class KafkaConsumerService implements Runnable {
             this.consumer.subscribe(Collections.singletonList(TOPIC_NAME));
 
             while (running) {
-                ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofMillis(100));
+                System.out.println("Consuming messages...");
+                ConsumerRecords<String, String> records = this.consumer.poll(Duration.ofMillis(1000));
+                System.out.println("Number of records: " + records.count());
                 for (ConsumerRecord<String, String> record : records) {
                     try {
+                        System.out.println("Consumed message: " + record.value());
                         this.dbManager.insertMessage(record.value());
                     } catch (SQLException e) {  
                         System.err.println("Failed to insert message: " + e.getMessage());
