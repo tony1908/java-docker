@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.util.Collections;
 
 
-public class KafkaConsumerService {
+public class KafkaConsumerService implements Runnable {
     private final KafkaConsumer<String, String> consumer;
     private static final String TOPIC_NAME = "names-topic";
     private static final String GROUP_ID = "names-consumer-group";
