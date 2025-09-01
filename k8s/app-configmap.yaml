@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: java-app
+data:
+  DB_HOST: "mariadb-service"
+  DB_PORT: "3306"
+  DB_NAME: "myapp"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka-service:9092"

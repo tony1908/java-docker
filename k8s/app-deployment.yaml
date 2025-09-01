@@ -21,17 +21,11 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-          env:
-            - name: DB_HOST
-              value: mariadb-service
-            - name: DB_PORT
-              value: "3306"
-            - name: DB_NAME
-              value: myapp
-            - name: DB_USER
-              value: appuser
-            - name: DB_PASSWORD
-              value: apppassword
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secret
 
 ---
 apiVersion: v1
