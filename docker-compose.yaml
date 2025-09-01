@@ -7,6 +7,17 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: myapp
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8080:8080"
 
   mariadb:
     image: mariadb
@@ -28,6 +39,32 @@ services:
     #image: redis
     #container_name: redis-container
   
+  zookeeper:
+    image: confluentinc/cp-zookeeper
+    container_name: zookeeper-container
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper
+
+  kafka:
+    image: confluentinc/cp-kafka
+    container_name: kafka-container
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    
+
 volumes:
   mariadb-data:
+  zookeeper-data:
+  kafka-data:
 

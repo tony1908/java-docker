@@ -28,10 +28,9 @@ public class DatabaseManager {
     }
 
     private void initDatabase() throws SQLException {
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS users (" +
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS messages (" +
              "    id INT AUTO_INCREMENT PRIMARY KEY," +
-             "    name VARCHAR(100) NOT NULL," +
-             "    email VARCHAR(100) NOT NULL UNIQUE," +
+             "    name VARCHAR(255) NOT NULL," +
              "    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
              ")";
             
@@ -40,29 +39,26 @@ public class DatabaseManager {
             }
     }
 
-    public void insertUser(String name, String email) throws SQLException {
-        String insertSQL = "INSERT INTO users (name, email) VALUES (?, ?)";
+    public void insertMessage(String name) throws SQLException {
+        String insertSQL = "INSERT INTO messages (name) VALUES (?)";
         
         try (PreparedStatement stmt = connection.prepareStatement(insertSQL)) {
             stmt.setString(1, name);
-            stmt.setString(2, email);
             int rowsAffected = stmt.executeUpdate();
             System.out.println(rowsAffected + " row(s) inserted.");
         }
     }
 
-    public void getAllUsers() throws SQLException {
-        String selectSQL = "SELECT * FROM users";
+    public String getLastMessage() throws SQLException {
+        String selectSQL = "SELECT name FROM messages ORDER BY created_at DESC LIMIT 1";
         
         try (Statement stmt = connection.createStatement()) {
             ResultSet rs = stmt.executeQuery(selectSQL);
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String name = rs.getString("name");
-                String email = rs.getString("email");
-                System.out.println("ID: " + id + ", Name: " + name + ", Email: " + email);
+            if (rs.next()) {
+                return rs.getString("name");
             }
         }
+        return null;
     }
 
     public void close() throws SQLException {
