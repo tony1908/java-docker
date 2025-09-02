@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: app
-          image: java-mariadb-app
-          imagePullPolicy: IfNotPresent
+          image: toony1908/java-mariadb-app
+          imagePullPolicy: Always
           ports:
             - containerPort: 8080
           #envFrom:
