@@ -5,6 +5,8 @@ WORKDIR /app
 COPY src/ ./src/
 COPY pom.xml ./
 
+RUN mvn clean test
+
 RUN mvn clean package
 
 FROM openjdk:11-jre-slim AS runner

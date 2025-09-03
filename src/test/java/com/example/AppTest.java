@@ -35,4 +35,20 @@ public class AppTest
     {
         assertTrue( true );
     }
+    
+    /**
+     * Test App main class exists and has main method
+     */
+    public void testAppMainClassExists()
+    {
+        try {
+            Class<?> appClass = Class.forName("com.example.App");
+            assertNotNull("App class should exist", appClass);
+            
+            java.lang.reflect.Method mainMethod = appClass.getMethod("main", String[].class);
+            assertNotNull("App should have main method", mainMethod);
+        } catch (Exception e) {
+            fail("App class or main method not found: " + e.getMessage());
+        }
+    }
 }

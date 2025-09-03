@@ -1,0 +1,130 @@
+pipeline {
+    agent any
+    
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+    
+    environment {
+        DOCKER_REGISTRY = 'YOUR_REGISTRY_URL_HERE'
+        IMAGE_NAME = 'javadb'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        K8S_NAMESPACE = 'default'
+        KUBECONFIG_CREDENTIAL_ID = 'YOUR_KUBECONFIG_CREDENTIALS_ID'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'SubversionSCM',
+                    locations: [[
+                        remote: 'YOUR_SVN_URL_HERE',
+                        credentialsId: 'YOUR_SVN_CREDENTIALS_ID'
+                    ]],
+                    workspaceUpdater: [$class: 'UpdateUpdater']
+                ])
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    image.tag('latest')
+                }
+            }
+        }
+        
+        stage('Push to Registry') {
+            steps {
+                script {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'YOUR_DOCKER_REGISTRY_CREDENTIALS_ID') {
+                        def image = docker.image("${IMAGE_NAME}:${IMAGE_TAG}")
+                        image.push()
+                        image.push('latest')
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Kubernetes') {
+            steps {
+                withKubeConfig([credentialsId: "${KUBECONFIG_CREDENTIAL_ID}"]) {
+                    script {
+                        sh """
+                            # Update deployment image
+                            kubectl set image deployment/javadb-deployment javadb=${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG} -n ${K8S_NAMESPACE}
+                            
+                            # Apply any new K8s manifests if they exist
+                            if [ -d "k8s" ]; then
+                                kubectl apply -f k8s/ -n ${K8S_NAMESPACE}
+                            fi
+                            
+                            # Wait for rollout to complete
+                            kubectl rollout status deployment/javadb-deployment -n ${K8S_NAMESPACE} --timeout=300s
+                            
+                            # Verify deployment
+                            kubectl get pods -l app=javadb -n ${K8S_NAMESPACE}
+                        """
+                    }
+                }
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                withKubeConfig([credentialsId: "${KUBECONFIG_CREDENTIAL_ID}"]) {
+                    script {
+                        sh """
+                            # Get service endpoint
+                            kubectl get service javadb-service -n ${K8S_NAMESPACE}
+                            
+                            # Wait for pods to be ready
+                            kubectl wait --for=condition=ready pod -l app=javadb -n ${K8S_NAMESPACE} --timeout=120s
+                        """
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            emailext (
+                subject: "K8S DEPLOYMENT SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                <p>Kubernetes deployment completed successfully!</p>
+                <p><b>Job:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Docker Image:</b> ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}</p>
+                <p><b>Namespace:</b> ${K8S_NAMESPACE}</p>
+                <p><b>Build URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                """,
+                mimeType: 'text/html',
+                to: 'YOUR_EMAIL_HERE',
+                from: 'jenkins@yourcompany.com'
+            )
+            echo 'Kubernetes deployment completed successfully!'
+        }
+        failure {
+            emailext (
+                subject: "K8S DEPLOYMENT FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                <p>Kubernetes deployment failed. Please check the logs.</p>
+                <p><b>Job:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Namespace:</b> ${K8S_NAMESPACE}</p>
+                <p><b>Console Output:</b> <a href="${env.BUILD_URL}/console">${env.BUILD_URL}/console</a></p>
+                """,
+                mimeType: 'text/html',
+                to: 'YOUR_EMAIL_HERE',
+                from: 'jenkins@yourcompany.com'
+            )
+            echo 'Kubernetes deployment failed!'
+        }
+    }
+}

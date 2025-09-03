@@ -1,0 +1,87 @@
+pipeline {
+    agent any
+    
+    triggers {
+        pollSCM('H/2 * * * *')
+    }
+    
+    environment {
+        DOCKER_REGISTRY = 'YOUR_REGISTRY_URL_HERE'
+        IMAGE_NAME = 'javadb'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'SubversionSCM',
+                    locations: [[
+                        remote: 'YOUR_SVN_URL_HERE',
+                        credentialsId: 'YOUR_SVN_CREDENTIALS_ID'
+                    ]],
+                    workspaceUpdater: [$class: 'UpdateUpdater']
+                ])
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def image = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                    image.tag('latest')
+                }
+            }
+        }
+        
+        stage('Push to Registry') {
+            steps {
+                script {
+                    docker.withRegistry("https://${DOCKER_REGISTRY}", 'YOUR_DOCKER_REGISTRY_CREDENTIALS_ID') {
+                        def image = docker.image("${IMAGE_NAME}:${IMAGE_TAG}")
+                        image.push()
+                        image.push('latest')
+                    }
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            emailext (
+                subject: "BUILD SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                <p>Good news! The build completed successfully.</p>
+                <p><b>Job:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Build URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                <p><b>Docker Image:</b> ${DOCKER_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}</p>
+                """,
+                mimeType: 'text/html',
+                to: 'YOUR_EMAIL_HERE',
+                from: 'jenkins@yourcompany.com'
+            )
+            echo 'Build completed successfully!'
+        }
+        failure {
+            emailext (
+                subject: "BUILD FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+                body: """
+                <p>Build failed. Please check the build logs.</p>
+                <p><b>Job:</b> ${env.JOB_NAME}</p>
+                <p><b>Build Number:</b> ${env.BUILD_NUMBER}</p>
+                <p><b>Build URL:</b> <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                <p><b>Console Output:</b> <a href="${env.BUILD_URL}/console">${env.BUILD_URL}/console</a></p>
+                """,
+                mimeType: 'text/html',
+                to: 'YOUR_EMAIL_HERE',
+                from: 'jenkins@yourcompany.com'
+            )
+            echo 'Build failed!'
+        }
+    }
+}
