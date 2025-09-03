@@ -5,7 +5,7 @@
   <groupId>com.example</groupId>
   <artifactId>javadb</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>javadb</name>
   <url>http://maven.apache.org</url>
 
@@ -13,6 +13,19 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
   </properties>
+
+  <distributionManagement>
+    <snapshotRepository>
+        <id>snapshots</id>
+        <name>trial2ot5pk-clase-maven-libs-snapshot-snapshots</name>
+        <url>https://trial2ot5pk.jfrog.io/artifactory/clase-maven-libs-snapshot</url>
+    </snapshotRepository>
+    <repository>
+        <id>libs</id>
+        <name>trial2ot5pk-clase-maven-libs-snapshot-releases</name>
+        <url>https://trial2ot5pk.jfrog.io/artifactory/clase-maven-libs-releases</url>
+    </repository>
+  </distributionManagement>
 
   <dependencies>
     <dependency>

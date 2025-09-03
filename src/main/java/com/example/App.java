@@ -17,6 +17,9 @@ public class App
         KafkaConsumerService consumerService = null;
         KafkaProducerService producerService = null;
 
+        String OPEN_AI_API_KEY = "sk-fake1234567890abcdefghijklmnopqrstuvwx";
+        System.out.println(OPEN_AI_API_KEY);
+
         try {
             dbManager = new DatabaseManager();
             consumerService = new KafkaConsumerService(dbManager);
