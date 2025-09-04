@@ -1,0 +1,54 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKER_IMAGE = 'trial2ot5pk.jfrog.io/clase-docker/java-mariadb-app'
+        JFROG_CREDENTIALS = credentials('jfrog')
+        PATH = "/usr/local/bin:${env.PATH}"
+    }
+
+    triggers {
+        pollSCM('* * * * *')
+    }
+
+    stages {
+        stage('Test & Build') {
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE} ."
+                /*sh 'mvn clean test'
+                sh 'mvn clean package'*/
+                
+            }
+        }
+
+        stage('Push') {
+            steps {
+                sh "echo \$JFROG_CREDENTIALS_PSW | docker login trial2ot5pk.jfrog.io --username \$JFROG_CREDENTIALS_USR --password-stdin"
+                sh "docker push ${DOCKER_IMAGE}"
+                /*sh 'mvn clean deploy'*/
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '/usr/local/bin/kubectl apply -f k8s/namespace.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/mariadb-pvc.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/mariadb-deployment.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/mariadb-service.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/kafka-deployment.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/app-configmap.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/app-secret.yaml'
+                sh '/usr/local/bin/kubectl apply -f k8s/app-deployment.yaml'
+            }
+        }
+    }
+
+    post {
+
+
+        success {
+            mail to: 'toony1908@gmail.com', subject: 'Build success', body: 'Build success'
+        }
+    }
+
+}

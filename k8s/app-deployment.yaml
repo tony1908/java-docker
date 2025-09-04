@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: toony1908/java-mariadb-app
+          image: trial2ot5pk.jfrog.io/clase-docker/java-mariadb-app
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
